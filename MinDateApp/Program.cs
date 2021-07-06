@@ -24,7 +24,20 @@ RequestDelegate getNowHandler = async (context) =>
     await context.Response.WriteAsJsonAsync(response);
 };
 
-RequestDelegate helloDelegate = async (context) => await context.Response.WriteAsJsonAsync("Hello World");
+RequestDelegate helloDelegate = async (context) =>
+{
+    var response = new
+    {
+        Message = "Hello World",
+        Endpoints = new
+        {
+            Now = "/now",
+            TimeZones = "/timezone"
+        }
+    };
+
+    await context.Response.WriteAsJsonAsync(response);
+};
 
 RequestDelegate getTimeZonesDelegate = async (context) =>
 {
@@ -115,13 +128,13 @@ class NowResponse
     public NowResponse(TimeZoneInfo tz, DateTimeOffset now)
     {
         Name = tz.DisplayName;
-        TimeZone = tz.Id;
+        Id = tz.Id;
         Now = TimeZoneInfo.ConvertTime(now, tz);
     }
 
     public string Name { get; set; }
 
-    public string TimeZone { get; set; }
+    public string Id { get; set; }
 
     public DateTimeOffset Now { get; set; }
 }
