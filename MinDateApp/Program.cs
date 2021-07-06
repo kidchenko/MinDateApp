@@ -4,6 +4,7 @@ using System.Linq;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Hosting;
+using TimeZoneConverter;
 
 var builder = WebApplication.CreateBuilder(args);
 await using var app = builder.Build();
@@ -52,10 +53,9 @@ IEnumerable<NowResponse> GetResponseForSpecificTimeZones(HttpContext httpContext
     var responses = tzQueryValues.Select(term =>
     {
         var searchedTimeZone = TimeZoneInfo.FindSystemTimeZoneById(term);
-        var specificTimeZone = new NowResponse()
+        var specificTimeZone = new NowResponse(searchedTimeZone, utcNow)
         {
-            TimeZone = searchedTimeZone.Id,
-            Now = TimeZoneInfo.ConvertTime(utcNow, searchedTimeZone)
+            
         };
         return specificTimeZone;
     }).ToList();
@@ -72,12 +72,8 @@ IEnumerable<NowResponse> GetResponseForCommonTimeZones()
         {"Asia/Bangkok", "Asia/Singapore", "Australia/Melbourne", "Asia/Shanghai", "Africa/Johannesburg"};
 
     var commonTimeZoneResponses = commonTimeZones
-        .Select(tz => TimeZoneInfo.FindSystemTimeZoneById(tz))
-        .Select(tz => new NowResponse
-        {
-            Now = TimeZoneInfo.ConvertTime(utcNow, tz),
-            TimeZone = tz.Id
-        });
+        .Select(tz => TZConvert.GetTimeZoneInfo(tz))
+        .Select(tz => new NowResponse(tz, utcNow));
 
     var nowResponses = new List<NowResponse>
     {
@@ -101,7 +97,8 @@ IEnumerable<TimeZoneResponse> FilterTimeZoneResponses(HttpContext httpContext)
     var searchTerm = httpContext.Request.Query["q"].ToString();
 
     return timeZoneInfos
-        .Where(tz => tz.Id.Contains(searchTerm, StringComparison.InvariantCultureIgnoreCase))
+        .Where(tz => tz.Id.Contains(searchTerm, StringComparison.InvariantCultureIgnoreCase) ||
+                                tz.DisplayName.Contains(searchTerm, StringComparison.InvariantCultureIgnoreCase))
         .Select(tz => new TimeZoneResponse(tz));
 }
 
@@ -115,6 +112,15 @@ await app.RunAsync();
 
 class NowResponse
 {
+    public NowResponse(TimeZoneInfo tz, DateTimeOffset now)
+    {
+        Name = tz.DisplayName;
+        TimeZone = tz.Id;
+        Now = TimeZoneInfo.ConvertTime(now, tz);
+    }
+
+    public string Name { get; set; }
+
     public string TimeZone { get; set; }
 
     public DateTimeOffset Now { get; set; }
@@ -147,18 +153,14 @@ class TimeZoneResponse
 
 class UtcNowResponse : NowResponse
 {
-    public UtcNowResponse(DateTimeOffset now)
+    public UtcNowResponse(DateTimeOffset now) : base(TimeZoneInfo.Utc, now)
     {
-        TimeZone = "utc";
-        Now = now;
     }
 }
 
 class LocalNowResponse : NowResponse
 {
-    public LocalNowResponse(DateTimeOffset now)
+    public LocalNowResponse(DateTimeOffset now) : base(TimeZoneInfo.Local, now)
     {
-        TimeZone = "local";
-        Now = now.ToLocalTime();
     }
 }
