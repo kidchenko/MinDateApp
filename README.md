@@ -6,17 +6,17 @@ TimeZone App using Blazor + ASP .NET Core Minimal Apps
 
 ## Get current time
 
-`GET https://mindateapp.azurewebsites.net/now`
+`GET https://mindateapp.azurewebsites.net/api/now`
 
 or
 
-`https://mindateapp.azurewebsites.net/now?tz=SE%20Asia%20Standard%20Time`
+`https://mindateapp.azurewebsites.net/api/now?tz=SE%20Asia%20Standard%20Time`
 
 
 ## Get all available TimeZones
 
-`GET https://mindateapp.azurewebsites.net/timezone`
+`GET https://mindateapp.azurewebsites.net/api/timezone`
 
 or
 
-`GET https://mindateapp.azurewebsites.net/timezone?q=bangkok`
+`GET https://mindateapp.azurewebsites.net/api/timezone?q=bangkok`
