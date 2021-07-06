@@ -31,8 +31,8 @@ RequestDelegate helloDelegate = async (context) =>
         Message = "Hello World",
         Endpoints = new
         {
-            Now = "/now",
-            TimeZones = "/timezone"
+            Now = "/api/now",
+            TimeZones = "/api/timezones"
         }
     };
 
@@ -117,9 +117,9 @@ IEnumerable<TimeZoneResponse> FilterTimeZoneResponses(HttpContext httpContext)
 
 app.MapGet("/", helloDelegate);
 
-app.MapGet("/now", getNowHandler);
+app.MapGet("/api/now", getNowHandler);
 
-app.MapGet("/timezone", getTimeZonesDelegate);
+app.MapGet("/api/timezones", getTimeZonesDelegate);
 
 await app.RunAsync();
 
